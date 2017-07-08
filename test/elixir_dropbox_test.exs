@@ -25,6 +25,16 @@ defmodule ElixirDropboxTest do
   	assert folder["id"] == metadata["id"]
   end
 
+  test "list folder contents", state do
+    ElixirDropbox.Files.create_folder(state[:client], "/upload_test")
+    files = ["file1.txt", "file2.txt", "file1.pdf", "file2.pdf"]
+    |> Enum.each(fn(fln) -> 
+      ElixirDropbox.Files.upload(state[:client], "/upload_test/#{fln}", "test/fixtures/#{fln}")
+    end)
+    assert ["/upload_test/file1.txt", "/upload_test/file2.txt"] == ElixirDropbox.Files.list_filenames_in_folder(state[:client], "/upload_test", "txt")
+    assert ["/upload_test/file1.pdf", "/upload_test/file2.pdf"] == ElixirDropbox.Files.list_filenames_in_folder(state[:client], "/upload_test", "pdf")
+  end  
+
   test "create folder", state do
     folder = ElixirDropbox.Files.create_folder(state[:client], "/hello_world")
     assert folder["name"] == "hello_world"
