@@ -133,6 +133,26 @@ defmodule ElixirDropbox.Files do
     download_request(client, "files/download", [], headers)
   end
 
+  def list_folder(client, path) do 
+    body = %{"path" => path}
+    result = to_string(Poison.Encoder.encode(body, []))
+    post(client, "/files/list_folder", result) 
+  end  
+
+  def list_files_in_folder(client, path, filtered_by_file_ending \\ "md") do 
+    folder_metadata = list_folder(client, path)
+    files = folder_metadata["entries"]
+    |> Enum.filter(fn(entry) -> entry[".tag"] == "file" end)
+    |> Enum.filter(fn(entry) ->
+      List.last(String.split(entry["name"], ".")) == String.trim_leading(filtered_by_file_ending, ".")
+    end)
+  end
+
+  def list_filenames_in_folder(client, path, filtered_by_file_ending \\ "md") do
+    filenames = list_files_in_folder(client, path, filtered_by_file_ending)
+    |> Enum.map(fn(entry) -> entry["path_lower"] end)
+  end
+
   def get_thumbnail(client, path, format \\ "jpeg", size \\ "w64h64") do
     dropbox_headers = %{
       :path => path,
